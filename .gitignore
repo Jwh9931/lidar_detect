@@ -1,0 +1,42 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.env
+
+# Local runtime outputs
+detections.json
+detections.html
+.codex_tmp/
+
+# Large local data and generated packages
+*.zip
+*.bag
+*.pcd
+*.ply
+*.bin
+*.npy
+*.csv
+*.log
+
+# Unrelated local experiment files
+JETSON_ORIN_YOLO11_SETUP.md
+requirements.jetson-jp512.txt
+scripts/setup_jetson_orin_jp512_yolo11.sh
+github_upload_lidar_detect/
+
+# ROS/catkin build outputs
+build/
+devel/
+install/
+log/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

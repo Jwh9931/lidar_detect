@@ -1,0 +1,112 @@
+roi:
+  # Default assumes x is forward, y is lateral, z is height.
+  # Keep only the current straight-track area within 300 m.
+  x: [-20.0, 300.0]
+  y: [-30.0, 30.0]
+  z: [-3.0, 6.0]
+
+preprocess:
+  voxel_size: 0.15
+  # first is faster than mean and is recommended for realtime on Jetson.
+  # Use mean if you need smoother offline detections.
+  voxel_mode: first
+
+ground:
+  method: ransac
+  distance_threshold: 0.18
+  iterations: 80
+  sample_size: 8000
+  min_ground_normal_z: 0.85
+  fallback_percentile: 5.0
+  fallback_height: 0.25
+
+clustering:
+  # grid is much faster on Jetson for realtime topic output.
+  # Set method: dbscan for more exact but slower clustering.
+  method: grid
+  grid_cell_size: 0.45
+  connectivity: 4
+  # Merge nearby fragments only when the merged AABB can still fit a vehicle.
+  merge_gap: 0.35
+  merge_max_points: 12000
+  merge_vehicle_size: [12.0, 3.8, 4.0]
+  eps: 0.75
+  min_points: 8
+  max_cluster_points: 30000
+
+rail:
+  # Replace this centerline with your track coordinates.
+  centerlines:
+    - [[0.0, 0.0], [300.0, 0.0]]
+  corridor_width: 6.0
+  min_overlap: 0.2
+
+output_policy:
+  # forward_x fits common LiDAR frames where x is forward.
+  # Use euclidean_xy if your frame does not use x as forward distance.
+  range_metric: forward_x
+  sort_by: confidence
+  per_label:
+    vehicle:
+      min_range: 0.0
+      max_range: 120.0
+      max_outputs: 30
+    pedestrian:
+      min_range: 0.0
+      max_range: 120.0
+      max_outputs: 15
+    unknown_rail_obstacle:
+      min_range: 5.0
+      max_range: 60.0
+      max_outputs: 20
+      min_size: [0.3, 0.3, 0.3]
+    large_rail_obstacle:
+      min_range: 0.0
+      max_range: 300.0
+      max_outputs: 15
+
+classification:
+  min_cluster_points: 10
+  min_height: 0.15
+  confidence_threshold: 0.42
+  static_rejection:
+    enabled: true
+    wall_like:
+      min_length: 5.0
+      max_width: 1.4
+      min_height: 1.6
+      min_aspect_ratio: 4.0
+    building_like:
+      max_footprint_area: 26.0
+      min_height: 2.2
+    # Suppress guardrails, walls, and vertical plates that can fit vehicle size.
+    thin_vertical_like:
+      min_length: 1.8
+      max_width: 1.0
+      min_height: 0.8
+      min_height_width_ratio: 1.45
+      min_aspect_ratio: 2.3
+    line_like:
+      min_length: 2.0
+      min_aspect_ratio: 3.0
+      max_fill_ratio: 0.32
+  shape_features:
+    cell_size: 0.25
+  vehicle:
+    # Lower bounds are relaxed for partial vehicle scans where only one side
+    # or the roof is visible in nonground point clouds.
+    length: [1.2, 12.0]
+    width: [0.6, 3.5]
+    height: [0.35, 4.0]
+    length_width_ratio: [0.9, 5.5]
+    min_footprint_area: 1.4
+    max_footprint_area: 28.0
+    min_points: 12
+  pedestrian:
+    height: [0.8, 2.4]
+    footprint: [0.2, 1.2]
+    min_width: 0.12
+    min_points: 8
+  large_rail_obstacle:
+    enabled: true
+    min_size: [2.0, 1.0, 1.0]
